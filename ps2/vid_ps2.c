@@ -1,5 +1,6 @@
 /* vid_ps2.c: the video and input of GLQuake on maxsdk: the screen is
-   maxsdk_gl's (libs/maxsdk_gl, 640 x 448), the input pad 0. */
+   maxsdk_gl's (libs/maxsdk_gl): the TV's (NTSC 640 x 448, PAL 640 x 512)
+   or 1080i (vid_mode 1, the Video Options menu); the input pad 0. */
 
 #include <mx/mx.h>
 #include <mx/pad.h>
@@ -14,6 +15,7 @@ unsigned short d_8to16table[256];
 unsigned d_8to24table[256];
 unsigned char d_15to8table[65536];
 
+/* 0: the TV's mode (NTSC or PAL, the console's), 1: 1080i */
 cvar_t vid_mode = {"vid_mode", "0", false};
 cvar_t gl_ztrick = {"gl_ztrick", "0"};
 
@@ -33,6 +35,14 @@ lpMTexFUNC qglMTexCoord2fSGIS;
 lpSelTexFUNC qglSelectTextureSGIS;
 
 static float vid_gamma = 1.0;
+
+extern void (*vid_menudrawfn)(void);
+extern void (*vid_menukeyfn)(int key);
+void M_Print(int cx, int cy, char *str);
+void M_PrintWhite(int cx, int cy, char *str);
+void M_DrawCharacter(int cx, int line, int num);
+void M_DrawPic(int x, int y, qpic_t *pic);
+void M_Menu_Options_f(void);
 
 void D_BeginDirectRect(int x, int y, byte *pbitmap, int width, int height) {}
 void D_EndDirectRect(int x, int y, int width, int height) {}
@@ -77,10 +87,66 @@ void GL_Init(void) {
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 }
 
+/* the mode of vid_mode: the 2D (console, status bar, menus) in the TV's
+   640 x 448 or 640 x 512, in 1080i in 640 x 360 (the size it has at 448
+   lines); the 3D in all of the screen (GL_BeginRendering) */
+static int vid_cur = -1;
+static void VID_ApplyMode(void) {
+	int want = vid_mode.value == 1;
+	if (want == vid_cur)
+		return;
+	if (mxgl_set_mode(want ? MXGL_1080I : MXGL_SD) < 0) {
+		Con_Printf("1080i: not enough memory\n");
+		want = 0;
+		Cvar_SetValue("vid_mode", 0);
+	}
+	vid_cur = want;
+	int w, h;
+	mxgl_screen(&w, &h);
+	vid.conwidth = vid.width = 640;
+	vid.conheight = vid.height = want ? 360 : h;
+	vid.aspect = ((float)vid.height / (float)vid.width) * (320.0f / 240.0f);
+	vid.recalc_refdef = 1;
+	Con_CheckResize();
+	Con_SafePrintf("Video mode %dx%d (%s).\n", w, h,
+	               want ? "1080i" : mxgl_mode() == MXGL_PAL ? "PAL" : "NTSC");
+}
+
 void GL_BeginRendering(int *x, int *y, int *width, int *height) {
+	VID_ApplyMode();
 	*x = *y = 0;
-	*width = MXGL_WIDTH;
-	*height = MXGL_HEIGHT;
+	mxgl_screen(width, height);
+}
+
+/* the Video Options menu: the two modes */
+static int vid_cursor;
+static void VID_MenuDraw(void) {
+	qpic_t *p = Draw_CachePic("gfx/vidmodes.lmp");
+	M_DrawPic((320 - p->width) / 2, 4, p);
+	M_Print(48, 64, "TV (NTSC/PAL)");
+	M_Print(48, 72, "1080i (1920x1080)");
+	M_PrintWhite(32, 64 + 8 * vid_cur, "*");
+	M_DrawCharacter(24, 64 + 8 * vid_cursor, 12 + ((int)(realtime * 4) & 1));
+	M_Print(16, 96, "1080i needs a TV that takes it");
+	M_Print(16, 104, "(component cable); X sets the mode");
+}
+static void VID_MenuKey(int key) {
+	switch (key) {
+	case K_ESCAPE:
+		S_LocalSound("misc/menu1.wav");
+		M_Menu_Options_f();
+		break;
+	case K_UPARROW:
+	case K_DOWNARROW:
+		S_LocalSound("misc/menu1.wav");
+		vid_cursor ^= 1;
+		break;
+	case K_ENTER:
+		S_LocalSound("misc/menu2.wav");
+		Cvar_SetValue("vid_mode", vid_cursor);
+		VID_ApplyMode();
+		break;
+	}
 }
 
 
@@ -113,24 +179,17 @@ void VID_Init(unsigned char *palette) {
 	vid.maxwarpheight = WARP_HEIGHT;
 	vid.colormap = host_colormap;
 	vid.fullbright = 256 - LittleLong(*((int *)vid.colormap + 2048));
-#ifdef MXGL_HIRES
-	/* the 2D (console, status bar, menus) in 640 x 360 units, the size it
-	   has at 640 x 448; the 3D in all 1920 x 1080 (GL_BeginRendering) */
-	vid.conwidth = vid.width = 640;
-	vid.conheight = vid.height = 360;
-#else
-	vid.conwidth = vid.width = MXGL_WIDTH;
-	vid.conheight = vid.height = MXGL_HEIGHT;
-#endif
-	vid.aspect = ((float)vid.height / (float)vid.width) * (320.0f / 240.0f);
 	vid.numpages = 2;
 
 	mxgl_init();
+	/* 1080i's memory now, in one piece */
+	mxgl_reserve_1080i();
 	GL_Init();
+	VID_ApplyMode();
 	Check_Gamma(palette);
 	VID_SetPalette(palette);
-	Con_SafePrintf("Video mode %dx%d initialized.\n", MXGL_WIDTH, MXGL_HEIGHT);
-	vid.recalc_refdef = 1;
+	vid_menudrawfn = VID_MenuDraw;
+	vid_menukeyfn = VID_MenuKey;
 }
 
 /* ---- input: pad 0 ------------------------------------------------------- */

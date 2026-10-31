@@ -16,7 +16,7 @@ the test end marker; `ARGS` is added to the command line. Without `ARGS` the dem
 | Part | How |
 |---|---|
 | Renderer | GLQuake's on `libs/maxsdk_gl` (OpenGL 1.1 subset on the GS); its lightmaps are `GL_LUMINANCE` with blend `ZERO, ONE_MINUS_SRC_COLOR`, which maxsdk_gl draws as `Cd * As` |
-| Video | `ps2/vid_ps2.c`: 640 x 448, `gl_max_size 128`, trilinear; the status bar every frame |
+| Video | `ps2/vid_ps2.c`: the TV's mode, NTSC 640 x 448 or PAL 640 x 512 (the console's), or 1080i (below); `gl_max_size 128`, trilinear; the status bar every frame |
 | Files | stdio on the IOP file server (`host:`), `ps2/ps2_file.c`; `-basedir host:` |
 | Input | pad 0: d-pad arrows, left stick moves, right stick turns, R1 attack (CTRL), X enter/jump, START menu, SELECT scores; O, square, triangle, R2, L1, L2 are AUX1..6 (bind them) |
 | Memory | 32 MiB: hunk 12 MiB, stack 1 MiB |
@@ -25,16 +25,17 @@ the test end marker; `ARGS` is added to the command line. Without `ARGS` the dem
 
 Not done: CD audio (id's null driver), network play (loopback only).
 
-## Branch `hires`: 1080i
+## 1080i
 
-This branch builds the 1920 x 1080 interlaced version (`$(OUT)` is
-`build/apps/maxsdk_quake1-hires`): maxsdk_gl with `MXGL_HIRES=1`, on the maxsdk worktree of
-branch `hires` (`libs/maxsdk-hires`, built into `build/libs/maxsdk-hires`). The 3D is drawn
-at 1920 x 1080 (two 540-line fields, drawn in three strips ahead of the beam every field);
-the 2D (console, status bar, menus) is laid out in 640 x 360.
+Options, Video Options switches between the TV's mode and 1080i (`vid_mode 0` / `1`, not
+kept in the config: a TV without 1080i would show nothing at the next start). In 1080i the
+3D is drawn at 1920 x 1080 (two 540-line fields, drawn in three strips ahead of the beam
+every field, maxsdk_gl's `MXGL_1080I`); the 2D (console, status bar, menus) is laid out in
+640 x 360. Its memory (2 MiB) is taken at the start (`mxgl_reserve_1080i`).
 
-On the PS2 (2026-10-31): the demo loop at 60 fps, the `start` map at 53 to 56 fps; no pass
-late. World polygons are drawn with `mxgl_DrawPolygon` (`WinQuake/gl_rsurf.c`), the
-lightmaps buffer is a byte a texel (GL_LUMINANCE only), and the palette goes to maxsdk_gl
-(`mxgl_Palette`: 8-bit textures). `make PROF=1` profiles the second half of a `FRAMES` run
-(`libs/maxsdk-hires/tools/prof.py <elf> <log>`).
+On the PS2 (2026-10-31, the 1080i-only build before the switch): the demo loop at 59 to 61
+fps, the `start` map at 60; no pass late. World polygons are drawn with `mxgl_DrawPolygon`
+(`WinQuake/gl_rsurf.c`), alias models with `mxgl_MultiDraw`, the lightmaps buffer is a
+byte a texel (GL_LUMINANCE only), and the palette goes to maxsdk_gl (`mxgl_Palette`:
+8-bit textures). `make PROF=1` profiles the second half of a `FRAMES` run
+(`libs/maxsdk/tools/prof.py <elf> <log>`).
