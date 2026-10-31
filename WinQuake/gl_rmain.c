@@ -20,6 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_main.c
 
 #include "quakedef.h"
+#ifdef __PS2__
+#include <mxgl.h>
+#endif
 
 entity_t	r_worldentity;
 
@@ -305,6 +308,71 @@ lastposenum = posenum;
 	verts += posenum * paliashdr->poseverts;
 	order = (int *)((byte *)paliashdr + paliashdr->commands);
 
+#ifdef __PS2__
+	/* all the strips and fans of the model in one array, drawn in one call
+	   (mxgl_MultiDraw, maxsdk_gl), not three calls a vertex */
+	{
+#define PS2_MAX_CMDV 4096
+#define PS2_MAX_PRIMS 512
+		static struct { float xyz[3], st[2]; byte c[4]; } buf[PS2_MAX_CMDV];
+		static GLenum pmode[PS2_MAX_PRIMS];
+		static int pfirst[PS2_MAX_PRIMS], pcount[PS2_MAX_PRIMS];
+		int nv = 0, np = 0;
+
+		glEnableClientState (GL_VERTEX_ARRAY);
+		glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+		glEnableClientState (GL_COLOR_ARRAY);
+		glVertexPointer (3, GL_FLOAT, sizeof(buf[0]), buf[0].xyz);
+		glTexCoordPointer (2, GL_FLOAT, sizeof(buf[0]), buf[0].st);
+		glColorPointer (4, GL_UNSIGNED_BYTE, sizeof(buf[0]), buf[0].c);
+		while (1)
+		{
+			GLenum mode = GL_TRIANGLE_STRIP;
+
+			count = *order++;
+			if (!count)
+				break;		// done
+			if (count < 0)
+			{
+				count = -count;
+				mode = GL_TRIANGLE_FAN;
+			}
+			if (count > PS2_MAX_CMDV)
+				count = PS2_MAX_CMDV;
+			if (nv + count > PS2_MAX_CMDV || np == PS2_MAX_PRIMS)
+			{
+				mxgl_MultiDraw (pmode, pfirst, pcount, np);
+				nv = np = 0;
+			}
+			pmode[np] = mode, pfirst[np] = nv, pcount[np] = count;
+			np++;
+			do
+			{
+				float c8;
+				int b;
+
+				buf[nv].st[0] = ((float *)order)[0];
+				buf[nv].st[1] = ((float *)order)[1];
+				order += 2;
+				/* glColor3f (l, l, l) as maxsdk_gl turns it into bytes */
+				c8 = shadedots[verts->lightnormalindex] * shadelight * 255;
+				b = c8 <= 0 ? 0 : c8 >= 255 ? 255 : (int)c8;
+				buf[nv].c[0] = buf[nv].c[1] = buf[nv].c[2] = b;
+				buf[nv].c[3] = 255;
+				buf[nv].xyz[0] = verts->v[0];
+				buf[nv].xyz[1] = verts->v[1];
+				buf[nv].xyz[2] = verts->v[2];
+				verts++, nv++;
+			} while (--count);
+		}
+		if (np)
+			mxgl_MultiDraw (pmode, pfirst, pcount, np);
+		glDisableClientState (GL_VERTEX_ARRAY);
+		glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState (GL_COLOR_ARRAY);
+		return;
+	}
+#endif
 	while (1)
 	{
 		// get the vertex count and primitive type
