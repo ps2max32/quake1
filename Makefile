@@ -11,9 +11,13 @@
 
 HERE     := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 PS2MAX   ?= $(abspath $(HERE)/../..)
-MAXSDK   ?= $(PS2MAX)/libs/maxsdk
+# the hires branch: 1080i (maxsdk_gl's MXGL_HIRES on maxsdk's hires passes,
+# the maxsdk worktree of branch hires, built apart from maxsdk's master)
+MAXSDK   ?= $(PS2MAX)/libs/maxsdk-hires
+MAXSDK_OUT ?= $(PS2MAX)/build/libs/maxsdk-hires
 MXGL     ?= $(PS2MAX)/libs/maxsdk_gl
-OUT      ?= $(PS2MAX)/build/apps/maxsdk_quake1
+MXGL_HIRES ?= 1
+OUT      ?= $(PS2MAX)/build/apps/maxsdk_quake1-hires
 all: $(OUT)/quake1.elf
 include $(MXGL)/mk/mxgl.mk
 include $(MAXSDK)/mk/maxsdk.mk
@@ -29,7 +33,7 @@ P        := $(HERE)/ps2
 Q1CFLAGS  = $(filter-out -fno-common -ffreestanding -Wall -Wextra -Wno-unused-parameter -std=gnu11,$(CFLAGS)) \
             -std=gnu89 -w -MMD -fcommon -fno-strict-aliasing -ffast-math -fapprox-func \
             -cl-single-precision-constant -nostdlibinc -isystem $(PICOLIBC)/include \
-            -DGLQUAKE -D__PS2__ -DNDEBUG -I$(W) -I$(P) -I$(OUT)/ps2 -I$(MXGL_INC) \
+            -DGLQUAKE -D__PS2__ -DNDEBUG -I$(W) -I$(P) -I$(OUT)/ps2 -I$(MXGL_INC) $(MXGL_DEFS) \
             -include $(P)/ps2_stdio.h -include $(P)/ps2_math.h
 
 ENGINE   := cl_demo cl_input cl_main cl_parse cl_tent chase cmd common console crc cvar \

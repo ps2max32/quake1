@@ -111,8 +111,15 @@ void VID_Init(unsigned char *palette) {
 	vid.maxwarpheight = WARP_HEIGHT;
 	vid.colormap = host_colormap;
 	vid.fullbright = 256 - LittleLong(*((int *)vid.colormap + 2048));
+#ifdef MXGL_HIRES
+	/* the 2D (console, status bar, menus) in 640 x 360 units, the size it
+	   has at 640 x 448; the 3D in all 1920 x 1080 (GL_BeginRendering) */
+	vid.conwidth = vid.width = 640;
+	vid.conheight = vid.height = 360;
+#else
 	vid.conwidth = vid.width = MXGL_WIDTH;
 	vid.conheight = vid.height = MXGL_HEIGHT;
+#endif
 	vid.aspect = ((float)vid.height / (float)vid.width) * (320.0f / 240.0f);
 	vid.numpages = 2;
 

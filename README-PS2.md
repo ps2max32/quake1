@@ -23,3 +23,11 @@ the test end marker; `ARGS` is added to the command line. Without `ARGS` the dem
 | Math | float literals (`-cl-single-precision-constant`) and float math.h (`ps2/ps2_math.h`): the FPU has no doubles |
 
 Not done: sound and CD audio (id's null drivers), network play (loopback only).
+
+## Branch `hires`: 1080i
+
+This branch builds the 1920 x 1080 interlaced version (`$(OUT)` is
+`build/apps/maxsdk_quake1-hires`): maxsdk_gl with `MXGL_HIRES=1`, on the maxsdk worktree of
+branch `hires` (`libs/maxsdk-hires`, built into `build/libs/maxsdk-hires`). The 3D is drawn
+at 1920 x 1080 (two 540-line fields, drawn in three strips ahead of the beam every field);
+the 2D (console, status bar, menus) is laid out in 640 x 360.
