@@ -3,6 +3,7 @@
    network are id's null drivers (snd_null.c, cd_null.c, net_none.c). */
 
 #include <mx/mx.h>
+#include <mx/prof.h>
 #include <mxgl.h>
 
 #include "quakedef.h"
@@ -174,7 +175,16 @@ int main(int argc, char **argv) {
 		last = host_framecount;
 		if (last % 60 == 0)
 			mx_printf("ps2: frame %d at %d ms\n", last, (int)(newtime * 1000));
+#if PS2_PROF
+		/* the profile of the second half of the run */
+		if (PS2_FRAMES && last == PS2_FRAMES / 2)
+			mx_prof_start(2000);
+#endif
 		if (PS2_FRAMES && last + 1 >= PS2_FRAMES) {
+#if PS2_PROF
+			mx_prof_stop();
+			mx_prof_report(600);
+#endif
 			int r = mxgl_screenshot("host:quake1.tga");
 			mx_printf("ps2: %d frames, picture host:quake1.tga: %d\n", last + 1, r);
 			ps2_end(0);

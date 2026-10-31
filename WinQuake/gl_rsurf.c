@@ -20,6 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_surf.c: surface-related refresh code
 
 #include "quakedef.h"
+#ifdef __PS2__
+#include <mxgl.h>
+#endif
 
 int			skytexturenum;
 
@@ -52,7 +55,12 @@ int			allocated[MAX_LIGHTMAPS][BLOCK_WIDTH];
 
 // the lightmap texture data needs to be kept in
 // main memory so texsubimage can update properly
+#ifdef __PS2__
+/* always GL_LUMINANCE here (below): a byte a texel, not 4 (3 MB) */
+byte		lightmaps[1*MAX_LIGHTMAPS*BLOCK_WIDTH*BLOCK_HEIGHT];
+#else
 byte		lightmaps[4*MAX_LIGHTMAPS*BLOCK_WIDTH*BLOCK_HEIGHT];
+#endif
 
 // For gl_texsort 0
 msurface_t  *skychain = NULL;
@@ -326,6 +334,9 @@ void R_DrawSequentialPoly (msurface_t *s)
 
 		t = R_TextureAnimation (s->texinfo->texture);
 		GL_Bind (t->gl_texturenum);
+#ifdef __PS2__
+		mxgl_DrawPolygon (p->verts[0], p->numverts, VERTEXSIZE, 3);
+#else
 		glBegin (GL_POLYGON);
 		v = p->verts[0];
 		for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
@@ -334,9 +345,13 @@ void R_DrawSequentialPoly (msurface_t *s)
 			glVertex3fv (v);
 		}
 		glEnd ();
+#endif
 
 		GL_Bind (lightmap_textures + s->lightmaptexturenum);
 		glEnable (GL_BLEND);
+#ifdef __PS2__
+		mxgl_DrawPolygon (p->verts[0], p->numverts, VERTEXSIZE, 5);
+#else
 		glBegin (GL_POLYGON);
 		v = p->verts[0];
 		for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
@@ -345,6 +360,7 @@ void R_DrawSequentialPoly (msurface_t *s)
 			glVertex3fv (v);
 		}
 		glEnd ();
+#endif
 
 		glDisable (GL_BLEND);
 
@@ -465,6 +481,9 @@ void R_DrawSequentialPoly (msurface_t *s)
 
 			t = R_TextureAnimation (s->texinfo->texture);
 			GL_Bind (t->gl_texturenum);
+#ifdef __PS2__
+			mxgl_DrawPolygon (p->verts[0], p->numverts, VERTEXSIZE, 3);
+#else
 			glBegin (GL_POLYGON);
 			v = p->verts[0];
 			for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
@@ -473,9 +492,13 @@ void R_DrawSequentialPoly (msurface_t *s)
 				glVertex3fv (v);
 			}
 			glEnd ();
+#endif
 
 			GL_Bind (lightmap_textures + s->lightmaptexturenum);
 			glEnable (GL_BLEND);
+#ifdef __PS2__
+			mxgl_DrawPolygon (p->verts[0], p->numverts, VERTEXSIZE, 5);
+#else
 			glBegin (GL_POLYGON);
 			v = p->verts[0];
 			for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
@@ -484,6 +507,7 @@ void R_DrawSequentialPoly (msurface_t *s)
 				glVertex3fv (v);
 			}
 			glEnd ();
+#endif
 
 			glDisable (GL_BLEND);
 		}
@@ -648,6 +672,9 @@ void DrawGLPoly (glpoly_t *p)
 	int		i;
 	float	*v;
 
+#ifdef __PS2__
+	mxgl_DrawPolygon (p->verts[0], p->numverts, VERTEXSIZE, 3);
+#else
 	glBegin (GL_POLYGON);
 	v = p->verts[0];
 	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
@@ -656,6 +683,7 @@ void DrawGLPoly (glpoly_t *p)
 		glVertex3fv (v);
 	}
 	glEnd ();
+#endif
 }
 
 
@@ -722,6 +750,9 @@ void R_BlendLightmaps (void)
 				DrawGLWaterPolyLightmap (p);
 			else
 			{
+#ifdef __PS2__
+				mxgl_DrawPolygon (p->verts[0], p->numverts, VERTEXSIZE, 5);
+#else
 				glBegin (GL_POLYGON);
 				v = p->verts[0];
 				for (j=0 ; j<p->numverts ; j++, v+= VERTEXSIZE)
@@ -730,6 +761,7 @@ void R_BlendLightmaps (void)
 					glVertex3fv (v);
 				}
 				glEnd ();
+#endif
 			}
 		}
 	}
@@ -1616,6 +1648,7 @@ void GL_BuildLightmaps (void)
 	if (isPermedia)
 		gl_lightmap_format = GL_RGBA;
 
+#ifndef __PS2__
 	if (COM_CheckParm ("-lm_1"))
 		gl_lightmap_format = GL_LUMINANCE;
 	if (COM_CheckParm ("-lm_a"))
@@ -1626,6 +1659,7 @@ void GL_BuildLightmaps (void)
 		gl_lightmap_format = GL_RGBA4;
 	if (COM_CheckParm ("-lm_4"))
 		gl_lightmap_format = GL_RGBA;
+#endif
 
 	switch (gl_lightmap_format)
 	{

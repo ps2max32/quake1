@@ -31,3 +31,9 @@ This branch builds the 1920 x 1080 interlaced version (`$(OUT)` is
 branch `hires` (`libs/maxsdk-hires`, built into `build/libs/maxsdk-hires`). The 3D is drawn
 at 1920 x 1080 (two 540-line fields, drawn in three strips ahead of the beam every field);
 the 2D (console, status bar, menus) is laid out in 640 x 360.
+
+On the PS2 (2026-10-31): the demo loop at 60 fps, the `start` map at 53 to 56 fps; no pass
+late. World polygons are drawn with `mxgl_DrawPolygon` (`WinQuake/gl_rsurf.c`), the
+lightmaps buffer is a byte a texel (GL_LUMINANCE only), and the palette goes to maxsdk_gl
+(`mxgl_Palette`: 8-bit textures). `make PROF=1` profiles the second half of a `FRAMES` run
+(`libs/maxsdk-hires/tools/prof.py <elf> <log>`).

@@ -47,6 +47,8 @@ void VID_SetPalette(unsigned char *palette) {
 	for (int i = 0; i < 256; i++, pal += 3)
 		*table++ = (255u << 24) + (pal[0] << 0) + (pal[1] << 8) + (pal[2] << 16);
 	d_8to24table[255] &= 0xffffff; /* 255 is transparent */
+	/* the textures made of these colours are kept as 8-bit indices */
+	mxgl_Palette(palette);
 }
 
 qboolean VID_Is8bit(void) { return false; }
