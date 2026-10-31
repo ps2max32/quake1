@@ -6,8 +6,8 @@
 #                        directory, copied there once)
 #
 # The engine draws through libs/maxsdk_gl (an OpenGL 1.1 subset on the GS);
-# ps2/ has the system, video and input layers. Sound, CD audio and the
-# network are id's null drivers.
+# ps2/ has the system, video, input and sound layers (sound: maxsdk's
+# mx/snd.h stream). CD audio and the network are id's null drivers.
 
 HERE     := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 PS2MAX   ?= $(abspath $(HERE)/../..)
@@ -40,8 +40,8 @@ ENGINE   := cl_demo cl_input cl_main cl_parse cl_tent chase cmd common console c
             gl_draw gl_mesh gl_model gl_refrag gl_rlight gl_rmain gl_rmisc gl_rsurf \
             gl_screen gl_test gl_warp host host_cmd keys menu mathlib net_loop net_main \
             net_vcr net_none pr_cmds pr_edict pr_exec r_part sbar sv_main sv_phys sv_move \
-            sv_user zone view wad world cd_null snd_null
-PS2SRC   := sys_ps2 vid_ps2 ps2_file
+            sv_user zone view wad world cd_null snd_dma snd_mem snd_mix
+PS2SRC   := sys_ps2 vid_ps2 ps2_file snd_ps2
 
 OBJS     := $(patsubst %,$(OUT)/q1/%.o,$(ENGINE)) $(patsubst %,$(OUT)/ps2/%.o,$(PS2SRC))
 

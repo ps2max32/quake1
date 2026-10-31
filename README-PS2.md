@@ -20,9 +20,10 @@ the test end marker; `ARGS` is added to the command line. Without `ARGS` the dem
 | Files | stdio on the IOP file server (`host:`), `ps2/ps2_file.c`; `-basedir host:` |
 | Input | pad 0: d-pad arrows, left stick moves, right stick turns, R1 attack (CTRL), X enter/jump, START menu, SELECT scores; O, square, triangle, R2, L1, L2 are AUX1..6 (bind them) |
 | Memory | 32 MiB: hunk 12 MiB, stack 1 MiB |
+| Sound | id's mixer (`snd_dma.c`, `snd_mix.c`) at 22050 Hz 16-bit stereo into a ring, sent to maxsdk's PCM stream (`mx/snd.h`, audsrv) by `ps2/snd_ps2.c` as far as the mixer has painted |
 | Math | float literals (`-cl-single-precision-constant`) and float math.h (`ps2/ps2_math.h`): the FPU has no doubles |
 
-Not done: sound and CD audio (id's null drivers), network play (loopback only).
+Not done: CD audio (id's null driver), network play (loopback only).
 
 ## Branch `hires`: 1080i
 
