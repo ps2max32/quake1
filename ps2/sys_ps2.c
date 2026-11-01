@@ -4,6 +4,7 @@
 
 #include <mx/mx.h>
 #include <mx/prof.h>
+#include <mx/vm.h>
 #include <mxgl.h>
 
 #include "quakedef.h"
@@ -139,7 +140,13 @@ void Sys_LowFPPrecision(void) {}
 
 /* ---- main --------------------------------------------------------------------- */
 
-#define MEM_MB 12
+/* maxsdk's virtual memory (<mx/vm.h>): malloc (the hunk) in up to 128 MiB,
+   paged to a swap file next to the game's data; the core heap holds what
+   the GS reads by DMA (maxsdk_gl: arenas, textures) */
+const struct mx_vm_config mx_vm_config = {
+	.swap = "host:quake1.swp",
+	.core_heap = MXGL_CORE_BYTES + (6u << 20),
+};
 
 int main(int argc, char **argv) {
 	static quakeparms_t parms;
@@ -151,15 +158,20 @@ int main(int argc, char **argv) {
 	for (char *p = strtok(line, " "); p && n < 63; p = strtok(NULL, " "))
 		args[n++] = p;
 
-	parms.memsize = MEM_MB * 1024 * 1024;
+	/* the hunk: 16 MiB as GLQuake on Linux, or -mem <MiB> */
+	COM_InitArgv(n, args);
+	parms.memsize = 16 * 1024 * 1024;
+	int j = COM_CheckParm("-mem");
+	if (j && j + 1 < com_argc)
+		parms.memsize = (int)(Q_atof(com_argv[j + 1]) * 1024 * 1024);
 	parms.membase = malloc(parms.memsize);
 	if (!parms.membase)
 		Sys_Error("no memory for the hunk");
 	parms.basedir = "host:";
-	COM_InitArgv(n, args);
 	parms.argc = com_argc;
 	parms.argv = com_argv;
-	mx_printf("Quake (GLQuake) on maxsdk: hunk %d MiB\n", MEM_MB);
+	mx_printf("Quake (GLQuake) on maxsdk: hunk %d MiB, virtual memory %s\n", parms.memsize >> 20,
+	          mx_vm_active() ? "on" : "off");
 	Host_Init(&parms);
 
 	/* frames: those Host_Frame ran (host_framecount; it skips the calls

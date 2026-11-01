@@ -182,8 +182,6 @@ void VID_Init(unsigned char *palette) {
 	vid.numpages = 2;
 
 	mxgl_init();
-	/* 1080i's memory now, in one piece */
-	mxgl_reserve_1080i();
 	GL_Init();
 	VID_ApplyMode();
 	Check_Gamma(palette);
@@ -224,6 +222,9 @@ void Sys_SendKeyEvents(void) {
 		if ((held ^ last) & b)
 			Key_Event(pad_keys[i].key, (held & b) != 0);
 	}
+	/* R3 (the right stick pressed): the counters on and off */
+	if (held & ~last & MX_PAD_R3)
+		mxgl_show_stats = !mxgl_show_stats;
 	last = held;
 	u8 st[4];
 	if (mx_pad_sticks(0, st))

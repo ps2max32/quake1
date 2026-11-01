@@ -18,8 +18,8 @@ the test end marker; `ARGS` is added to the command line. Without `ARGS` the dem
 | Renderer | GLQuake's on `libs/maxsdk_gl` (OpenGL 1.1 subset on the GS); its lightmaps are `GL_LUMINANCE` with blend `ZERO, ONE_MINUS_SRC_COLOR`, which maxsdk_gl draws as `Cd * As` |
 | Video | `ps2/vid_ps2.c`: the TV's mode, NTSC 640 x 448 or PAL 640 x 512 (the console's), or 1080i (below); `gl_max_size 128`, trilinear; the status bar every frame |
 | Files | stdio on the IOP file server (`host:`), `ps2/ps2_file.c`; `-basedir host:` |
-| Input | pad 0: d-pad arrows, left stick moves, right stick turns, R1 attack (CTRL), X enter/jump, START menu, SELECT scores; O, square, triangle, R2, L1, L2 are AUX1..6 (bind them) |
-| Memory | 32 MiB: hunk 12 MiB, stack 1 MiB |
+| Input | pad 0: d-pad arrows, left stick moves, right stick turns, R1 attack (CTRL), X enter/jump, START menu, R3 (right stick pressed) the counters on/off, SELECT scores; O, square, triangle, R2, L1, L2 are AUX1..6 (bind them) |
+| Memory | maxsdk's virtual memory (`mx_vm_config` in `ps2/sys_ps2.c`): `malloc` in up to 128 MiB, paged to `host:quake1.swp`; the hunk 16 MiB (`-mem <MiB>`); a core heap of 12 MiB for maxsdk_gl (what the GS reads by DMA); stack 1 MiB. In PCSX2 only on the EE interpreter (`PCSX2_EE=interp`): the recompiler raises no TLB misses, so there the program runs without it, in 32 MiB |
 | Sound | id's mixer (`snd_dma.c`, `snd_mix.c`) at 22050 Hz 16-bit stereo into a ring, sent to maxsdk's PCM stream (`mx/snd.h`, audsrv) by `ps2/snd_ps2.c` as far as the mixer has painted |
 | Math | float literals (`-cl-single-precision-constant`) and float math.h (`ps2/ps2_math.h`): the FPU has no doubles |
 
@@ -31,7 +31,7 @@ Options, Video Options switches between the TV's mode and 1080i (`vid_mode 0` / 
 kept in the config: a TV without 1080i would show nothing at the next start). In 1080i the
 3D is drawn at 1920 x 1080 (two 540-line fields, drawn in three strips ahead of the beam
 every field, maxsdk_gl's `MXGL_1080I`); the 2D (console, status bar, menus) is laid out in
-640 x 360. Its memory (2 MiB) is taken at the start (`mxgl_reserve_1080i`).
+640 x 360.
 
 On the PS2 (2026-10-31, the 1080i-only build before the switch): the demo loop at 59 to 61
 fps, the `start` map at 60; no pass late. World polygons are drawn with `mxgl_DrawPolygon`
