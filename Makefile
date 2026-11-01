@@ -5,19 +5,19 @@
 #                        build/pcsx2-test/id1 (Q1DATA: the retail ID1
 #                        directory, copied there once)
 #
-# The engine draws through libs/maxsdk_gl (an OpenGL 1.1 subset on the GS);
+# The engine draws through libs/libgl (an OpenGL 1.1 subset on the GS);
 # ps2/ has the system, video, input and sound layers (sound: maxsdk's
 # mx/snd.h stream). CD audio and the network are id's null drivers.
 
 HERE     := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 PS2MAX   ?= $(abspath $(HERE)/../..)
 MAXSDK   ?= $(PS2MAX)/libs/maxsdk
-MXGL     ?= $(PS2MAX)/libs/maxsdk_gl
-OUT      ?= $(PS2MAX)/build/apps/maxsdk_quake1
+MXGL     ?= $(PS2MAX)/libs/libgl
+OUT      ?= $(PS2MAX)/build/apps/quake1
 all: $(OUT)/quake1.elf
 include $(MXGL)/mk/mxgl.mk
 include $(MAXSDK)/mk/maxsdk.mk
-# MX_MEMORY=vm (started by mxload.elf): Quake in VM, maxsdk_gl in core
+# MX_MEMORY=vm (started by mxload.elf): Quake in VM, libgl in core
 MX_CORE_OBJS = $(MXGL_OBJS)
 
 PICOLIBC ?= $(PS2MAX)/build/libs/picolibc/install

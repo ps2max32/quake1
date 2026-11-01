@@ -310,7 +310,7 @@ lastposenum = posenum;
 
 #ifdef __PS2__
 	/* all the strips and fans of the model in one array, drawn in one call
-	   (mxgl_MultiDraw, maxsdk_gl), not three calls a vertex */
+	   (mxgl_MultiDraw, libgl), not three calls a vertex */
 	{
 #define PS2_MAX_CMDV 4096
 #define PS2_MAX_PRIMS 512
@@ -354,7 +354,7 @@ lastposenum = posenum;
 				buf[nv].st[0] = ((float *)order)[0];
 				buf[nv].st[1] = ((float *)order)[1];
 				order += 2;
-				/* glColor3f (l, l, l) as maxsdk_gl turns it into bytes */
+				/* glColor3f (l, l, l) as libgl turns it into bytes */
 				c8 = shadedots[verts->lightnormalindex] * shadelight * 255;
 				b = c8 <= 0 ? 0 : c8 >= 255 ? 255 : (int)c8;
 				buf[nv].c[0] = buf[nv].c[1] = buf[nv].c[2] = b;

@@ -142,7 +142,7 @@ void Sys_LowFPPrecision(void) {}
 
 /* maxsdk's virtual memory (<mx/vm.h>): malloc (the hunk) in up to 128 MiB,
    paged to a swap file next to the game's data; the core heap holds what
-   the GS reads by DMA (maxsdk_gl: arenas, textures) */
+   the GS reads by DMA (libgl: arenas, textures) */
 const struct mx_vm_config mx_vm_config = {
 	.swap = "host:quake1.swp",
 	.core_heap = MXGL_CORE_BYTES + (6u << 20),

@@ -1,5 +1,5 @@
 /* vid_ps2.c: the video and input of GLQuake on maxsdk: the screen is
-   maxsdk_gl's (libs/maxsdk_gl): the TV's (NTSC 640 x 448, PAL 640 x 512)
+   libgl's (libs/libgl): the TV's (NTSC 640 x 448, PAL 640 x 512)
    or 1080i (vid_mode 1, the Video Options menu); the input pad 0. */
 
 #include <mx/mx.h>
