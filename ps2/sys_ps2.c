@@ -141,18 +141,20 @@ void Sys_LowFPPrecision(void) {}
 /* ---- main --------------------------------------------------------------------- */
 
 /* maxsdk's virtual memory (<mx/vm.h>): malloc (the hunk) in up to 128 MiB,
-   paged to a swap file next to the game's data; the core heap holds what
-   the GS reads by DMA (libgl: arenas, textures) */
+   paged to a swap file next to the game's data; what the GS reads by DMA
+   (libgl: arenas, textures) is pinned memory, frames taken as needed */
 const struct mx_vm_config mx_vm_config = {
 	.swap = "host:quake1.swp",
-	.core_heap = MXGL_CORE_BYTES + (6u << 20),
 };
 
 int main(int argc, char **argv) {
 	static quakeparms_t parms;
 	/* the command line: GLQuake's settings for the PS2, then PS2_ARGS */
-	static char line[512] = "quake -basedir host: +gl_max_size 128 "
-	                        "+gl_texturemode GL_LINEAR_MIPMAP_LINEAR " PS2_ARGS;
+	/* the textures at full size (up to 256: libgl leaves their top levels
+	   out while GS memory refills, MXGL_TEX_AUTO in vid_ps2.c), trilinear;
+	   dynamic lights in the lightmaps, not as glow balls */
+	static char line[512] = "quake -basedir host: +gl_max_size 256 "
+	                        "+gl_texturemode GL_LINEAR_MIPMAP_LINEAR +gl_flashblend 0 " PS2_ARGS;
 	static char *args[64];
 	int n = 0;
 	for (char *p = strtok(line, " "); p && n < 63; p = strtok(NULL, " "))

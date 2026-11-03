@@ -118,6 +118,9 @@ typedef struct glpoly_s
 	struct	glpoly_s	*chain;
 	int		numverts;
 	int		flags;			// for SURF_UNDERWATER
+#ifdef __PS2__
+	int		ps2_first;		// 1 + its first vertex in the world's buffer object, 0: none
+#endif
 	float	verts[4][VERTEXSIZE];	// variable sized (xyz s1t1 s2t2)
 } glpoly_t;
 

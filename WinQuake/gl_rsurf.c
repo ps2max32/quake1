@@ -21,7 +21,86 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #ifdef __PS2__
-#include <mxgl.h>
+/* The world's polygons (glpoly_t: x, y, z, s, t, lightmap s, t) in one
+   buffer object, made with the lightmaps (PS2_BuildWorldBuffer); the arrays
+   point into it while ps2_world_st is the texture coordinates' offset (3,
+   or 5 for the lightmap's): -1 when other code set its own arrays */
+static GLuint ps2_world_buf;
+int ps2_world_st = -1;
+
+static void PS2_BuildWorldBuffer (void)
+{
+	int		j, i, n = 0;
+	model_t	*m;
+	float	*v, *d;
+
+	for (j=1 ; j<MAX_MODELS && (m = cl.model_precache[j]) ; j++)
+		if (m->name[0] != '*')
+			for (i=0 ; i<m->numsurfaces ; i++)
+				if (m->surfaces[i].polys && !(m->surfaces[i].flags & (SURF_DRAWTURB|SURF_DRAWSKY)))
+					n += m->surfaces[i].polys->numverts;
+	if (!ps2_world_buf)
+		glGenBuffers (1, &ps2_world_buf);
+	ps2_world_st = -1;
+	d = v = malloc (n * VERTEXSIZE * sizeof(float) + 4);
+	if (!v)
+		return;
+	n = 0;
+	for (j=1 ; j<MAX_MODELS && (m = cl.model_precache[j]) ; j++)
+		if (m->name[0] != '*')
+			for (i=0 ; i<m->numsurfaces ; i++)
+			{
+				glpoly_t *p = m->surfaces[i].polys;
+				if (!p || (m->surfaces[i].flags & (SURF_DRAWTURB|SURF_DRAWSKY)))
+					continue;
+				memcpy (d, p->verts, p->numverts * VERTEXSIZE * sizeof(float));
+				d += p->numverts * VERTEXSIZE;
+				p->ps2_first = 1 + n;
+				n += p->numverts;
+			}
+	glGetError ();
+	glBindBuffer (GL_ARRAY_BUFFER, ps2_world_buf);
+	glBufferData (GL_ARRAY_BUFFER, n * VERTEXSIZE * sizeof(float), v, GL_STATIC_DRAW);
+	glBindBuffer (GL_ARRAY_BUFFER, 0);
+	free (v);
+	/* no room (core memory): the polygons drawn from their own vertices */
+	if (glGetError () == GL_OUT_OF_MEMORY)
+	{
+		Con_Printf ("world buffer: out of memory (%d vertices)\n", n);
+		for (j=1 ; j<MAX_MODELS && (m = cl.model_precache[j]) ; j++)
+			if (m->name[0] != '*')
+				for (i=0 ; i<m->numsurfaces ; i++)
+					if (m->surfaces[i].polys)
+						m->surfaces[i].polys->ps2_first = 0;
+	}
+}
+
+/* a polygon: from the world's buffer object if it is in it, else from its
+   own vertices; st the offset of the texture coordinates */
+static void PS2_DrawPoly (glpoly_t *p, int st)
+{
+	if (p->ps2_first)
+	{
+		if (ps2_world_st != st)
+		{
+			glEnableClientState (GL_VERTEX_ARRAY);
+			glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+			glBindBuffer (GL_ARRAY_BUFFER, ps2_world_buf);
+			glVertexPointer (3, GL_FLOAT, VERTEXSIZE * sizeof(float), (void *)0);
+			glTexCoordPointer (2, GL_FLOAT, VERTEXSIZE * sizeof(float), (void *)(st * sizeof(float)));
+			glBindBuffer (GL_ARRAY_BUFFER, 0);
+			ps2_world_st = st;
+		}
+		glDrawArrays (GL_POLYGON, p->ps2_first - 1, p->numverts);
+		return;
+	}
+	ps2_world_st = -1;
+	glEnableClientState (GL_VERTEX_ARRAY);
+	glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+	glVertexPointer (3, GL_FLOAT, VERTEXSIZE * sizeof(float), p->verts[0]);
+	glTexCoordPointer (2, GL_FLOAT, VERTEXSIZE * sizeof(float), &p->verts[0][st]);
+	glDrawArrays (GL_POLYGON, 0, p->numverts);
+}
 #endif
 
 int			skytexturenum;
@@ -335,7 +414,7 @@ void R_DrawSequentialPoly (msurface_t *s)
 		t = R_TextureAnimation (s->texinfo->texture);
 		GL_Bind (t->gl_texturenum);
 #ifdef __PS2__
-		mxgl_DrawPolygon (p->verts[0], p->numverts, VERTEXSIZE, 3);
+		PS2_DrawPoly (p, 3);
 #else
 		glBegin (GL_POLYGON);
 		v = p->verts[0];
@@ -350,7 +429,7 @@ void R_DrawSequentialPoly (msurface_t *s)
 		GL_Bind (lightmap_textures + s->lightmaptexturenum);
 		glEnable (GL_BLEND);
 #ifdef __PS2__
-		mxgl_DrawPolygon (p->verts[0], p->numverts, VERTEXSIZE, 5);
+		PS2_DrawPoly (p, 5);
 #else
 		glBegin (GL_POLYGON);
 		v = p->verts[0];
@@ -482,7 +561,7 @@ void R_DrawSequentialPoly (msurface_t *s)
 			t = R_TextureAnimation (s->texinfo->texture);
 			GL_Bind (t->gl_texturenum);
 #ifdef __PS2__
-			mxgl_DrawPolygon (p->verts[0], p->numverts, VERTEXSIZE, 3);
+			PS2_DrawPoly (p, 3);
 #else
 			glBegin (GL_POLYGON);
 			v = p->verts[0];
@@ -497,7 +576,7 @@ void R_DrawSequentialPoly (msurface_t *s)
 			GL_Bind (lightmap_textures + s->lightmaptexturenum);
 			glEnable (GL_BLEND);
 #ifdef __PS2__
-			mxgl_DrawPolygon (p->verts[0], p->numverts, VERTEXSIZE, 5);
+			PS2_DrawPoly (p, 5);
 #else
 			glBegin (GL_POLYGON);
 			v = p->verts[0];
@@ -673,7 +752,7 @@ void DrawGLPoly (glpoly_t *p)
 	float	*v;
 
 #ifdef __PS2__
-	mxgl_DrawPolygon (p->verts[0], p->numverts, VERTEXSIZE, 3);
+	PS2_DrawPoly (p, 3);
 #else
 	glBegin (GL_POLYGON);
 	v = p->verts[0];
@@ -751,7 +830,7 @@ void R_BlendLightmaps (void)
 			else
 			{
 #ifdef __PS2__
-				mxgl_DrawPolygon (p->verts[0], p->numverts, VERTEXSIZE, 5);
+				PS2_DrawPoly (p, 5);
 #else
 				glBegin (GL_POLYGON);
 				v = p->verts[0];
@@ -1697,6 +1776,9 @@ void GL_BuildLightmaps (void)
 			BuildSurfaceDisplayList (m->surfaces + i);
 		}
 	}
+#ifdef __PS2__
+	PS2_BuildWorldBuffer ();
+#endif
 
  	if (!gl_texsort.value)
  		GL_SelectTexture(TEXTURE1_SGIS);

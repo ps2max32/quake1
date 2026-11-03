@@ -20,9 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_main.c
 
 #include "quakedef.h"
-#ifdef __PS2__
-#include <mxgl.h>
-#endif
 
 entity_t	r_worldentity;
 
@@ -310,7 +307,7 @@ lastposenum = posenum;
 
 #ifdef __PS2__
 	/* all the strips and fans of the model in one array, drawn in one call
-	   (mxgl_MultiDraw, libgl), not three calls a vertex */
+	   (glMultiModeDrawArraysIBM), not three calls a vertex */
 	{
 #define PS2_MAX_CMDV 4096
 #define PS2_MAX_PRIMS 512
@@ -319,6 +316,8 @@ lastposenum = posenum;
 		static int pfirst[PS2_MAX_PRIMS], pcount[PS2_MAX_PRIMS];
 		int nv = 0, np = 0;
 
+		extern int ps2_world_st;
+		ps2_world_st = -1;	/* the world's arrays (gl_rsurf.c) are not set now */
 		glEnableClientState (GL_VERTEX_ARRAY);
 		glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 		glEnableClientState (GL_COLOR_ARRAY);
@@ -341,7 +340,7 @@ lastposenum = posenum;
 				count = PS2_MAX_CMDV;
 			if (nv + count > PS2_MAX_CMDV || np == PS2_MAX_PRIMS)
 			{
-				mxgl_MultiDraw (pmode, pfirst, pcount, np);
+				glMultiModeDrawArraysIBM (pmode, pfirst, pcount, np, sizeof(GLenum));
 				nv = np = 0;
 			}
 			pmode[np] = mode, pfirst[np] = nv, pcount[np] = count;
@@ -366,7 +365,7 @@ lastposenum = posenum;
 			} while (--count);
 		}
 		if (np)
-			mxgl_MultiDraw (pmode, pfirst, pcount, np);
+			glMultiModeDrawArraysIBM (pmode, pfirst, pcount, np, sizeof(GLenum));
 		glDisableClientState (GL_VERTEX_ARRAY);
 		glDisableClientState (GL_TEXTURE_COORD_ARRAY);
 		glDisableClientState (GL_COLOR_ARRAY);
