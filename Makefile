@@ -57,8 +57,8 @@ $(OUT)/ps2/%.o: $(P)/%.c
 # ARGS: more of the command line. In $(OUT)/ps2/runcfg.h, rewritten only
 # when they change.
 RUNCFG := $(OUT)/ps2/runcfg.h
-$(shell mkdir -p $(OUT)/ps2; printf '#define PS2_FRAMES %s\n#define PS2_ARGS "%s"\n#define PS2_PROF %s\n' \
-  '$(or $(FRAMES),0)' '$(ARGS)' '$(or $(PROF),0)' > $(RUNCFG).new; \
+$(shell mkdir -p $(OUT)/ps2; printf '#define PS2_FRAMES %s\n#define PS2_ARGS "%s"\n#define PS2_PROF %s\n#define PS2_VM %s\n' \
+  '$(or $(FRAMES),0)' '$(ARGS)' '$(or $(PROF),0)' '$(if $(filter vm,$(MX_MEMORY)),1,0)' > $(RUNCFG).new; \
   cmp -s $(RUNCFG).new $(RUNCFG) || mv $(RUNCFG).new $(RUNCFG); rm -f $(RUNCFG).new)
 
 $(OUT)/quake1.elf: $(OBJS) $(MXGL_OBJS) $(HLSL_OBJS) $(MX_LIB) $(MX_CRT0) $(MX_LD) $(LIBC_LIBS)

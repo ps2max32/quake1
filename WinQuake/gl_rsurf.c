@@ -1295,14 +1295,14 @@ e->angles[0] = -e->angles[0];	// stupid quake bug
 R_RecursiveWorldNode
 ================
 */
-void R_RecursiveWorldNode (mnode_t *node)
+void R_RecursiveWorldNode (mnode_t *node, int clipflags)
 {
 	int			i, c, side, *pindex;
 	vec3_t		acceptpt, rejectpt;
 	mplane_t	*plane;
 	msurface_t	*surf, **mark;
 	mleaf_t		*pleaf;
-	double		d, dot;
+	float		d, dot;	// PS2: float (the EE has no double FPU)
 	vec3_t		mins, maxs;
 
 	if (node->contents == CONTENTS_SOLID)
@@ -1310,8 +1310,18 @@ void R_RecursiveWorldNode (mnode_t *node)
 
 	if (node->visframe != r_visframecount)
 		return;
-	if (R_CullBox (node->minmaxs, node->minmaxs+3))
-		return;
+	// the frustum planes the node's box is not wholly inside of (a box
+	// inside a plane's side has all its children inside too: as r_bsp.c)
+	for (i=0 ; i<4 ; i++)
+	{
+		if (!(clipflags & (1<<i)))
+			continue;
+		side = BoxOnPlaneSide (node->minmaxs, node->minmaxs+3, &frustum[i]);
+		if (side == 2)
+			return;
+		if (side == 1)
+			clipflags &= ~(1<<i);
+	}
 	
 // if a leaf node, draw stuff
 	if (node->contents < 0)
@@ -1364,7 +1374,7 @@ void R_RecursiveWorldNode (mnode_t *node)
 		side = 1;
 
 // recurse down the children, front side first
-	R_RecursiveWorldNode (node->children[side]);
+	R_RecursiveWorldNode (node->children[side], clipflags);
 
 // draw stuff
 	c = node->numsurfaces;
@@ -1373,9 +1383,9 @@ void R_RecursiveWorldNode (mnode_t *node)
 	{
 		surf = cl.worldmodel->surfaces + node->firstsurface;
 
-		if (dot < 0 -BACKFACE_EPSILON)
+		if (dot < (float)(0 -BACKFACE_EPSILON))
 			side = SURF_PLANEBACK;
-		else if (dot > BACKFACE_EPSILON)
+		else if (dot > (float)BACKFACE_EPSILON)
 			side = 0;
 		{
 			for ( ; c ; c--, surf++)
@@ -1411,7 +1421,7 @@ void R_RecursiveWorldNode (mnode_t *node)
 	}
 
 // recurse down the back side
-	R_RecursiveWorldNode (node->children[!side]);
+	R_RecursiveWorldNode (node->children[!side], clipflags);
 }
 
 
@@ -1440,7 +1450,7 @@ void R_DrawWorld (void)
 	R_ClearSkyBox ();
 #endif
 
-	R_RecursiveWorldNode (cl.worldmodel->nodes);
+	R_RecursiveWorldNode (cl.worldmodel->nodes, 15);
 
 	DrawTextureChains ();
 

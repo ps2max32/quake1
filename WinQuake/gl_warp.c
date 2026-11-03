@@ -197,7 +197,16 @@ void EmitWaterPolys (msurface_t *fa)
 	float		*v;
 	int			i;
 	float		s, t, os, ot;
+	static double	rt_time = -1;
+	static float	rt;
 
+	// PS2: single precision (the EE has no double FPU): the time's turns
+	// once a frame, then float per vertex
+	if (rt_time != realtime)
+	{
+		rt_time = realtime;
+		rt = (float)fmod (realtime * TURBSCALE, 256.0);
+	}
 
 	for (p=fa->polys ; p ; p=p->next)
 	{
@@ -207,11 +216,11 @@ void EmitWaterPolys (msurface_t *fa)
 			os = v[3];
 			ot = v[4];
 
-			s = os + turbsin[(int)((ot*0.125+realtime) * TURBSCALE) & 255];
-			s *= (1.0/64);
+			s = os + turbsin[(int)(ot*(0.125f*(float)TURBSCALE) + rt) & 255];
+			s *= (1.0f/64);
 
-			t = ot + turbsin[(int)((os*0.125+realtime) * TURBSCALE) & 255];
-			t *= (1.0/64);
+			t = ot + turbsin[(int)(os*(0.125f*(float)TURBSCALE) + rt) & 255];
+			t *= (1.0f/64);
 
 			glTexCoord2f (s, t);
 			glVertex3fv (v);

@@ -142,10 +142,13 @@ void Sys_LowFPPrecision(void) {}
 
 /* maxsdk's virtual memory (<mx/vm.h>): malloc (the hunk) in up to 128 MiB,
    paged to a swap file next to the game's data; what the GS reads by DMA
-   (libgl: arenas, textures) is pinned memory, frames taken as needed */
+   (libgl: arenas, textures) is pinned memory, frames taken as needed.
+   MX_MEMORY=phys: no VM, everything in the 32 MiB */
+#if PS2_VM
 const struct mx_vm_config mx_vm_config = {
 	.swap = "host:quake1.swp",
 };
+#endif
 
 int main(int argc, char **argv) {
 	static quakeparms_t parms;
@@ -197,7 +200,7 @@ int main(int argc, char **argv) {
 		if (PS2_FRAMES && last + 1 >= PS2_FRAMES) {
 #if PS2_PROF
 			mx_prof_stop();
-			mx_prof_report(600);
+			mx_prof_report(4000);
 #endif
 			int r = mxgl_screenshot("host:quake1.tga");
 			mx_printf("ps2: %d frames, picture host:quake1.tga: %d\n", last + 1, r);

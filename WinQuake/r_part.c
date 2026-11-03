@@ -655,6 +655,7 @@ void R_DrawParticles (void)
 	float			time1;
 	float			dvel;
 	float			frametime;
+	float			now;
 	
 #ifdef GLQUAKE
 	vec3_t			up, right;
@@ -678,13 +679,14 @@ void R_DrawParticles (void)
 	time3 = frametime * 15;
 	time2 = frametime * 10; // 15;
 	time1 = frametime * 5;
-	grav = frametime * sv_gravity.value * 0.05;
+	grav = frametime * sv_gravity.value * 0.05f;
 	dvel = 4*frametime;
+	now = cl.time; // die is a float: compared in single precision
 	
 	for ( ;; ) 
 	{
 		kill = active_particles;
-		if (kill && kill->die < cl.time)
+		if (kill && kill->die < now)
 		{
 			active_particles = kill->next;
 			kill->next = free_particles;
@@ -699,7 +701,7 @@ void R_DrawParticles (void)
 		for ( ;; )
 		{
 			kill = p->next;
-			if (kill && kill->die < cl.time)
+			if (kill && kill->die < now)
 			{
 				p->next = kill->next;
 				kill->next = free_particles;
@@ -716,7 +718,7 @@ void R_DrawParticles (void)
 		if (scale < 20)
 			scale = 1;
 		else
-			scale = 1 + scale * 0.004;
+			scale = 1 + scale * 0.004f;
 		glColor3ubv ((byte *)&d_8to24table[(int)p->color]);
 		glTexCoord2f (0,0);
 		glVertex3fv (p->org);
