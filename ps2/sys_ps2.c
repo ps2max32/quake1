@@ -146,7 +146,7 @@ void Sys_LowFPPrecision(void) {}
    MX_MEMORY=phys: no VM, everything in the 32 MiB */
 #if PS2_VM
 const struct mx_vm_config mx_vm_config = {
-	.swap = "host:quake1.swp",
+	.swap = "quake1.swp",
 };
 #endif
 
@@ -202,8 +202,8 @@ int main(int argc, char **argv) {
 			mx_prof_stop();
 			mx_prof_report(4000);
 #endif
-			int r = mxgl_screenshot("host:quake1.tga");
-			mx_printf("ps2: %d frames, picture host:quake1.tga: %d\n", last + 1, r);
+			int r = mxgl_screenshot("quake1.tga");
+			mx_printf("ps2: %d frames, picture quake1.tga: %d\n", last + 1, r);
 			ps2_end(0);
 		}
 	}
