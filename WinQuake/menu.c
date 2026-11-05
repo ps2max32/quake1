@@ -1660,6 +1660,7 @@ void M_Quit_Key (int key)
 
 	case 'Y':
 	case 'y':
+	case K_ENTER: // the pad has no Y
 		key_dest = key_console;
 		Host_Quit_f ();
 		break;

@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
 	/* the textures at full size (up to 256: libgl leaves their top levels
 	   out while GS memory refills, MXGL_TEX_AUTO in vid_ps2.c), trilinear;
 	   dynamic lights in the lightmaps, not as glow balls */
-	static char line[512] = "quake -basedir host: +gl_max_size 256 "
+	static char line[512] = "quake -basedir . +gl_max_size 256 "
 	                        "+gl_texturemode GL_LINEAR_MIPMAP_LINEAR +gl_flashblend 0 " PS2_ARGS;
 	static char *args[64];
 	int n = 0;
@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
 	parms.membase = malloc(parms.memsize);
 	if (!parms.membase)
 		Sys_Error("no memory for the hunk");
-	parms.basedir = "host:";
+	parms.basedir = ".";
 	parms.argc = com_argc;
 	parms.argv = com_argv;
 	mx_printf("Quake (GLQuake) on maxsdk: hunk %d MiB, virtual memory %s\n", parms.memsize >> 20,
