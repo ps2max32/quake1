@@ -136,6 +136,14 @@ static void VID_ApplyMode(void) {
 	               flags & MXGL_BEAM ? ", beam racing" : "", flags & MXGL_RGB24 ? ", 24-bit colour" : "");
 }
 
+/* the menus' size (menu.c), in 2D pixels: in the TV's mode (2D 640 x 448 /
+   512, the picture's pixels) 2, a menu pixel 2 x 2 pixels; in 1080i (2D
+   640 x 360 on 1920 x 1080) 1, a menu pixel 3 x 3 pixels, with or without
+   beam racing */
+float VID_MenuScale(void) {
+	return mxgl_mode() == MXGL_1080I ? 1 : 2;
+}
+
 void GL_BeginRendering(int *x, int *y, int *width, int *height) {
 	VID_ApplyMode();
 	static int q = -2;

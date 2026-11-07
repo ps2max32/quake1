@@ -709,6 +709,9 @@ void Draw_ConsoleBackground (int lines)
 {
 	int y = (vid.height * 3) >> 2;
 
+	/* the screen's size now: the video mode can change after Draw_Init */
+	conback->width = vid.width;
+	conback->height = vid.height;
 	if (lines > y)
 		Draw_Pic(0, lines - vid.height, conback);
 	else

@@ -3019,6 +3019,8 @@ void M_Init (void)
 }
 
 
+float VID_MenuScale (void);
+
 void M_Draw (void)
 {
 	if (m_state == m_none || key_dest != key_menu)
@@ -3044,6 +3046,21 @@ void M_Draw (void)
 	{
 		m_recursiveDraw = false;
 	}
+
+#if defined(GLQUAKE) && defined(__PS2__)
+	/* the menus are made for 320 x 200: drawn at the size VID_MenuScale
+	   gives (vid_ps2.c); vid's size is the menu's meanwhile */
+	unsigned vid_w = vid.width, vid_h = vid.height;
+	float scale = VID_MenuScale ();
+	if (scale != 1)
+	{
+		vid.width = vid_w / scale;
+		vid.height = vid_h / scale;
+		glMatrixMode (GL_PROJECTION);
+		glLoadIdentity ();
+		glOrtho (0, vid.width, vid.height, 0, -99999, 99999);
+	}
+#endif
 
 	switch (m_state)
 	{
@@ -3122,6 +3139,18 @@ void M_Draw (void)
 		M_ServerList_Draw ();
 		break;
 	}
+
+#if defined(GLQUAKE) && defined(__PS2__)
+	if (scale != 1)
+	{
+		vid.width = vid_w;
+		vid.height = vid_h;
+		glMatrixMode (GL_PROJECTION);
+		glLoadIdentity ();
+		glOrtho (0, vid.width, vid.height, 0, -99999, 99999);
+		glMatrixMode (GL_MODELVIEW);
+	}
+#endif
 
 	if (m_entersound)
 	{
