@@ -15,11 +15,6 @@ void mx_exit(int status) __attribute__((noreturn));
    picture, and more of the command line; set by the Makefile */
 #include "runcfg.h"
 
-static void ps2_end(int status) {
-	mx_printf("@@PS2TEST_END@@ status=%d\n", status);
-	mx_exit(status);
-}
-
 /* ---- files ------------------------------------------------------------------ */
 
 #define MAX_HANDLES 10
@@ -96,7 +91,7 @@ void Sys_Error(char *error, ...) {
 	vsnprintf(text, sizeof text, error, ap);
 	va_end(ap);
 	mx_printf("Sys_Error: %s\n", text);
-	ps2_end(1);
+	mx_exit(1);
 }
 
 void Sys_Printf(char *fmt, ...) {
@@ -113,7 +108,7 @@ void Sys_Printf(char *fmt, ...) {
 
 void Sys_Quit(void) {
 	mx_printf("Sys_Quit\n");
-	ps2_end(0);
+	mx_exit(0);
 }
 
 static u64 cycles(void) {
@@ -204,7 +199,7 @@ int main(int argc, char **argv) {
 #endif
 			int r = mxgl_screenshot("quake1.tga");
 			mx_printf("ps2: %d frames, picture quake1.tga: %d\n", last + 1, r);
-			ps2_end(0);
+			mx_exit(0);
 		}
 	}
 	return 0;
