@@ -8,10 +8,19 @@ id's GLQuake (`WinQuake/`, GPL) built for the PS2 with `libs/maxsdk` (clang, R59
 make [FRAMES=n] [ARGS="+map e1m1"]     $(OUT)/quake1.elf (build/apps/quake1)
 make run                               copies the retail ID1/PAK0, PAK1 (Q1DATA) to
                                        build/pcsx2-test/id1 and runs it in PCSX2
+make -C pc [FRAMES=n] [ARGS=...] run   the same engine on the PC's OpenGL (below)
 ```
 
 `FRAMES=n` ends the program after n drawn frames with a picture (`host:quake1.tga`) and
 the test end marker; `ARGS` is added to the command line. Without `ARGS` the demos play.
+`FIXEDFPS=50` makes the game's time 1/50 s a frame instead of the clock's, so the picture
+at frame n does not depend on the speed (lightstyles, sky, water, animations).
+
+The PC build (`pc/`) is the reference for libgl: the same `WinQuake/` sources (id's GL
+paths, not the `__PS2__` ones), vid_ps2.c's GL state and command line, 640 x 512, drawn
+off screen through EGL (Mesa's llvmpipe), time 1/50 s a frame. Its `quake1-pc.tga` and the
+PS2 build's `quake1.tga` (with `FIXEDFPS=50`) at the same `FRAMES` and `ARGS` show the
+same view; what differs is libgl's.
 
 | Part | How |
 |---|---|

@@ -120,6 +120,11 @@ static u64 cycles(void) {
 	return (u64)high << 32 | c;
 }
 
+#if PS2_FIXED_FPS
+/* FIXEDFPS: each frame 1/PS2_FIXED_FPS of a second (pc/sys_pc.c's time) */
+static int frames_run;
+double Sys_FloatTime(void) { return (double)frames_run / PS2_FIXED_FPS; }
+#else
 double Sys_FloatTime(void) {
 	static u64 base;
 	u64 c = cycles();
@@ -127,6 +132,7 @@ double Sys_FloatTime(void) {
 		base = c;
 	return (double)(c - base) / MX_EE_HZ;
 }
+#endif
 
 char *Sys_ConsoleInput(void) { return NULL; }
 void Sys_Sleep(void) {}
@@ -179,6 +185,9 @@ int main(int argc, char **argv) {
 	double oldtime = Sys_FloatTime();
 	int last = -1;
 	for (;;) {
+#if PS2_FIXED_FPS
+		frames_run++;
+#endif
 		double newtime = Sys_FloatTime();
 		Host_Frame(newtime - oldtime);
 		oldtime = newtime;
