@@ -15,6 +15,8 @@ make -C pc [FRAMES=n] [ARGS=...] run   the same engine on the PC's OpenGL (below
 the test end marker; `ARGS` is added to the command line. Without `ARGS` the demos play.
 `FIXEDFPS=50` makes the game's time 1/50 s a frame instead of the clock's, so the picture
 at frame n does not depend on the speed (lightstyles, sky, water, animations).
+`ARGS="+timedemo demo1"` ends the program when the timedemo is done, its result the last
+console line (`PROF=1`: with a profile of the timedemo).
 
 The PC build (`pc/`) is the reference for libgl: the same `WinQuake/` sources (id's GL
 paths, not the `__PS2__` ones), vid_ps2.c's GL state and command line, 640 x 512, drawn

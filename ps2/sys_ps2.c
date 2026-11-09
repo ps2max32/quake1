@@ -191,6 +191,24 @@ int main(int argc, char **argv) {
 		double newtime = Sys_FloatTime();
 		Host_Frame(newtime - oldtime);
 		oldtime = newtime;
+		/* a timedemo (ARGS="+timedemo demo1") ends the program when it is
+		   done: its result is the console's last line (PROF=1: and its
+		   profile) */
+		{
+			static int in_timedemo;
+			if (cls.timedemo && !in_timedemo) {
+				in_timedemo = 1;
+#if PS2_PROF
+				mx_prof_start(2000); /* PROF=1: the profile of the timedemo */
+#endif
+			} else if (!cls.timedemo && in_timedemo) {
+#if PS2_PROF
+				mx_prof_stop();
+				mx_prof_report(4000);
+#endif
+				mx_exit(0);
+			}
+		}
 		if (host_framecount == last)
 			continue;
 		last = host_framecount;
