@@ -15,7 +15,7 @@ the test end marker; `ARGS` is added to the command line. Without `ARGS` the dem
 
 | Part | How |
 |---|---|
-| Renderer | GLQuake's on `libs/libgl` (OpenGL 1.1 subset on the GS); its lightmaps are `GL_LUMINANCE` with blend `ZERO, ONE_MINUS_SRC_COLOR`, which libgl draws as `Cd * As` |
+| Renderer | GLQuake's on `libs/libgl` (OpenGL 1.1 subset on the GS); its lightmaps are `GL_LUMINANCE` with blend `ZERO, ONE_MINUS_SRC_COLOR`, which libgl draws as `Cd * As`; `gl_keeptjunctions 1` (id's 0 drops the points on the polygons' edges: the T-junctions left showed as red dots and stripes, the clear colour, along the edges) |
 | Video | `ps2/vid_ps2.c`: the TV's mode, NTSC 640 x 448 or PAL 640 x 512 (the console's), or 1080i, with or without beam racing, 16 or 24-bit colour (below); `gl_max_size 256`, trilinear, the textures' top levels left out only while GS memory overflows or the swap file is read (`gl_ps2texquality -1`, libgl's `MXGL_TEX_AUTO`; 0, 1, 2: that many levels always; `gl_ps2texlimits 120,80,30`); dynamic lights in the lightmaps (`gl_flashblend 0`); the status bar every frame |
 | Files | stdio on the IOP file server (`host:`), `ps2/ps2_file.c`; `-basedir host:` |
 | Input | pad 0: d-pad arrows, left stick moves, right stick turns, R1 attack (CTRL), X enter/jump, START menu, L3 + R3 (both sticks pressed) the counters on/off, SELECT scores; O, square, triangle, R2, L1, L2 are AUX1..6 (bind them) |

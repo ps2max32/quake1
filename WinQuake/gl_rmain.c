@@ -95,7 +95,14 @@ cvar_t	gl_polyblend = {"gl_polyblend","1"};
 cvar_t	gl_flashblend = {"gl_flashblend","1"};
 cvar_t	gl_playermip = {"gl_playermip","0"};
 cvar_t	gl_nocolors = {"gl_nocolors","0"};
+#ifdef __PS2__
+/* the edges' co-linear points kept: without them a neighbour's vertex lies
+   on an edge (a T-junction) and the GS leaves pixels of the clear colour
+   along it, red dots and stripes */
+cvar_t	gl_keeptjunctions = {"gl_keeptjunctions","1"};
+#else
 cvar_t	gl_keeptjunctions = {"gl_keeptjunctions","0"};
+#endif
 cvar_t	gl_reporttjunctions = {"gl_reporttjunctions","0"};
 cvar_t	gl_doubleeyes = {"gl_doubleeys", "1"};
 
