@@ -158,7 +158,8 @@ int main(int argc, char **argv) {
 	   out while GS memory refills, MXGL_TEX_AUTO in vid_ps2.c), trilinear;
 	   dynamic lights in the lightmaps, not as glow balls */
 	static char line[512] = "quake -basedir . +gl_max_size 256 "
-	                        "+gl_texturemode GL_LINEAR_MIPMAP_LINEAR +gl_flashblend 0 " PS2_ARGS;
+	                        "+gl_texturemode GL_LINEAR_MIPMAP_LINEAR +gl_flashblend 0 "
+	                        "+joy_deadzone 0.22 +joy_curve 1.5 " PS2_ARGS;
 	static char *args[64];
 	int n = 0;
 	for (char *p = strtok(line, " "); p && n < 63; p = strtok(NULL, " "))
