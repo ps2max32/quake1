@@ -66,6 +66,16 @@ $(shell mkdir -p $(OUT)/ps2; printf '#define PS2_FRAMES %s\n#define PS2_ARGS "%s
 $(OUT)/quake1.elf: $(OBJS) $(MXGL_OBJS) $(HLSL_OBJS) $(MX_LIB) $(MX_CRT0) $(MX_LD) $(LIBC_LIBS)
 	$(call link,$@,--defsym=__mx_stack_size=0x100000 $(MX_CRT0) $(OBJS) $(MXGL_OBJS) $(HLSL_OBJS) $(LIBC_LIBS))
 
+# The store's package (ps2max32/store docs/index-format.md, "The package"):
+# quake1/ with the program and its game.ini (ps2/game.ini: where its data
+# is), no game data. The CI releases it on a tag v*
+package: $(OUT)/quake1-ps2max.zip
+$(OUT)/quake1-ps2max.zip: $(OUT)/quake1.elf $(HERE)/ps2/game.ini
+	rm -rf $(OUT)/pkg && mkdir -p $(OUT)/pkg/quake1
+	$(LLVM)/llvm-strip -o $(OUT)/pkg/quake1/quake1.elf $<
+	cp $(HERE)/ps2/game.ini $(OUT)/pkg/quake1/
+	cd $(OUT)/pkg && python3 -c 'import sys, os, zipfile; z = zipfile.ZipFile(sys.argv[1], "w", zipfile.ZIP_DEFLATED); [z.write(os.path.join(d, f)) for d, _, fs in sorted(os.walk(sys.argv[2])) for f in sorted(fs)]; z.close()' $@ quake1
+
 # ---- running --------------------------------------------------------------------
 Q1DATA   ?= /mnt/truenas_data_exthdd/spellen/PC/Quake I/ID1
 RUNDIR   := $(PS2MAX)/build/pcsx2-test
