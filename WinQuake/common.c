@@ -1729,6 +1729,24 @@ void COM_AddGameDirectory (char *dir)
 COM_InitFilesystem
 ================
 */
+/*
+PS2: a game directory of the base directory; when that is elsewhere (the
+game data shared by games, -basedir ../DATA/quake), the one of the same name
+next to the program after it, so what the game writes (config.cfg, saves)
+goes there and is found first
+*/
+static void COM_AddBaseGameDirectory (char *basedir, char *name)
+{
+	COM_AddGameDirectory (va("%s/%s", basedir, name));
+	if (strcmp (basedir, "."))
+	{
+		char    own[MAX_OSPATH];
+		sprintf (own, "./%s", name);
+		Sys_mkdir (own);
+		COM_AddGameDirectory (own);
+	}
+}
+
 void COM_InitFilesystem (void)
 {
 	int             i, j;
@@ -1774,12 +1792,12 @@ void COM_InitFilesystem (void)
 //
 // start up with GAMENAME by default (id1)
 //
-	COM_AddGameDirectory (va("%s/"GAMENAME, basedir) );
+	COM_AddBaseGameDirectory (basedir, GAMENAME);
 
 	if (COM_CheckParm ("-rogue"))
-		COM_AddGameDirectory (va("%s/rogue", basedir) );
+		COM_AddBaseGameDirectory (basedir, "rogue");
 	if (COM_CheckParm ("-hipnotic"))
-		COM_AddGameDirectory (va("%s/hipnotic", basedir) );
+		COM_AddBaseGameDirectory (basedir, "hipnotic");
 
 //
 // -game <gamedir>
@@ -1789,7 +1807,7 @@ void COM_InitFilesystem (void)
 	if (i && i < com_argc-1)
 	{
 		com_modified = true;
-		COM_AddGameDirectory (va("%s/%s", basedir, com_argv[i+1]));
+		COM_AddBaseGameDirectory (basedir, com_argv[i+1]);
 	}
 
 //

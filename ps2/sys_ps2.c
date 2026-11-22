@@ -4,6 +4,7 @@
 
 #include <mx/mx.h>
 #include <mx/prof.h>
+#include <mx/sif.h>
 #include <mx/vm.h>
 #include <mxgl.h>
 
@@ -78,7 +79,7 @@ int Sys_FileTime(char *path) {
 	return -1;
 }
 
-void Sys_mkdir(char *path) {}
+void Sys_mkdir(char *path) { mx_fio_mkdir(path, 0777); }
 
 /* ---- the system -------------------------------------------------------------- */
 
@@ -157,13 +158,18 @@ int main(int argc, char **argv) {
 	/* the textures at full size (up to 256: libgl leaves their top levels
 	   out while GS memory refills, MXGL_TEX_AUTO in vid_ps2.c), trilinear;
 	   dynamic lights in the lightmaps, not as glow balls */
-	static char line[512] = "quake -basedir . +gl_max_size 256 "
+	static char line[512] = "quake +gl_max_size 256 "
 	                        "+gl_texturemode GL_LINEAR_MIPMAP_LINEAR +gl_flashblend 0 "
 	                        "+joy_deadzone 0.22 +joy_curve 1.5 " PS2_ARGS;
 	static char *args[64];
 	int n = 0;
 	for (char *p = strtok(line, " "); p && n < 63; p = strtok(NULL, " "))
 		args[n++] = p;
+	/* then the program's own: the shell's args= of game.ini, e.g.
+	   "-basedir ../DATA/quake" (the data elsewhere, game.ini's data=);
+	   without -basedir the game's directory, "." */
+	for (int i = 1; i < argc && n < 63; i++)
+		args[n++] = argv[i];
 
 	/* the hunk: 16 MiB as GLQuake on Linux, or -mem <MiB> */
 	COM_InitArgv(n, args);
