@@ -1,5 +1,5 @@
 /* Sound: id's mixer (snd_dma.c, snd_mix.c) into a ring here, 22050 Hz
-   16-bit stereo, and from it into maxsdk's PCM stream (mx/snd.h: audsrv,
+   16-bit stereo, and from it into maxsdk's PCM stream (mx/snd.h: mxsnd,
    which plays it at 48 kHz). SNDDMA_Submit sends what the mixer has painted
    since the last call (up to paintedtime), as far as the stream has room;
    SNDDMA_GetDMAPos reports what has been sent as played. The sound plays
@@ -20,7 +20,7 @@ static int sent; /* frames sent to the stream, as paintedtime counts them */
 qboolean SNDDMA_Init(void)
 {
 	if (mx_snd_init() < 0 || mx_snd_stream_format(RATE, 16, 2) < 0) {
-		Con_Printf("SNDDMA_Init: no audsrv\n");
+		Con_Printf("SNDDMA_Init: no sound module\n");
 		return false;
 	}
 	shm = &sn;
@@ -33,7 +33,7 @@ qboolean SNDDMA_Init(void)
 	shm->submission_chunk = 1;
 	shm->buffer = (unsigned char *)ring;
 	sent = 0;
-	Con_Printf("Sound: %d Hz 16-bit stereo through audsrv\n", RATE);
+	Con_Printf("Sound: %d Hz 16-bit stereo through mxsnd\n", RATE);
 	return true;
 }
 

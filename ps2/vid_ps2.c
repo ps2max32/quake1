@@ -138,12 +138,14 @@ static void VID_ApplyMode(void) {
 	               flags & MXGL_BEAM ? ", beam racing" : "", flags & MXGL_RGB24 ? ", 24-bit colour" : "");
 }
 
-/* the menus' size (menu.c), in 2D pixels: in the TV's mode (2D 640 x 448 /
-   512, the picture's pixels) 2, a menu pixel 2 x 2 pixels; in 1080i (2D
-   640 x 360 on 1920 x 1080) 1, a menu pixel 3 x 3 pixels, with or without
-   beam racing */
-float VID_MenuScale(void) {
-	return mxgl_mode() == MXGL_1080I ? 1 : 2;
+/* the menus' screen (menu.c's M_Draw), as GLQuake's 2D (640 x 480 on any
+   screen): 480 high and as wide as the picture's aspect gives with square
+   pixels, 640 on a 4:3 picture, 854 on a 16:9 one (720p, 1080 lines, or
+   the system's video.aspect 16:9; in 1080i a menu pixel 2.25 x 2.25 pixels
+   of 1920 x 1080), so a 16:9 picture does not stretch the menu */
+void VID_MenuSize(int *w, int *h) {
+	*w = mxgl_wide() ? 854 : 640;
+	*h = 480;
 }
 
 void GL_BeginRendering(int *x, int *y, int *width, int *height) {
@@ -269,13 +271,13 @@ static float stick[4]; /* right x, y, left x, y: -1 .. 1 */
 
 /* the sticks (the console or config.cfg change them) */
 cvar_t joy_deadzone = {"joy_deadzone", "0.22", true};
-cvar_t joy_curve = {"joy_curve", "1.5", true};
-cvar_t joy_yawspeed = {"joy_yawspeed", "270", true};
-cvar_t joy_pitchspeed = {"joy_pitchspeed", "175", true};
+cvar_t joy_curve = {"joy_curve", "2", true};
+cvar_t joy_yawspeed = {"joy_yawspeed", "215", true};
+cvar_t joy_pitchspeed = {"joy_pitchspeed", "145", true};
 
 /* A stick's two axes (-1 .. 1) as a PS4 or PS5 game takes them: a round dead
    zone dz (drift, also diagonal), the rest stretched to 0 .. 1 and raised to
-   the power curve (1: linear; 1.5: finer aim near the middle, full speed
+   the power curve (1: linear; 2: finer aim near the middle, full speed
    at the edge), the direction kept */
 static void stick_shape(float *x, float *y, float dz, float curve) {
 	float m = sqrtf(*x * *x + *y * *y);

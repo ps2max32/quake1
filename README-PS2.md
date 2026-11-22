@@ -31,7 +31,7 @@ same view; what differs is libgl's.
 | Files | stdio on the IOP file server (`host:`), `ps2/ps2_file.c`; `-basedir host:` |
 | Input | pad 0: d-pad arrows, left stick moves, right stick turns, R1 attack (CTRL), X enter/jump, START menu, L3 + R3 (both sticks pressed) the counters on/off, SELECT scores; O, square, triangle, R2, L1, L2 are AUX1..6 (bind them) |
 | Memory | maxsdk's virtual memory (`mx_vm_config` in `ps2/sys_ps2.c`): `malloc` in up to 128 MiB, paged to `host:quake1.swp`; the hunk 16 MiB (`-mem <MiB>`); built into VM (`MX_MEMORY=vm`, the default: started by `mxload.elf`, as `make run` does), only maxsdk, libc and libgl in physical memory; libgl's pinned memory (what the GS reads by DMA) taken from the frames as needed, the textures' larger levels pageable; stack 1 MiB. In PCSX2 only on the EE interpreter (`PCSX2_EE=interp`: the recompiler raises no TLB misses); `MX_MEMORY=phys` builds it to run without VM, in 32 MiB |
-| Sound | id's mixer (`snd_dma.c`, `snd_mix.c`) at 22050 Hz 16-bit stereo into a ring, sent to maxsdk's PCM stream (`mx/snd.h`, audsrv) by `ps2/snd_ps2.c` as far as the mixer has painted |
+| Sound | id's mixer (`snd_dma.c`, `snd_mix.c`) at 22050 Hz 16-bit stereo into a ring, sent to maxsdk's PCM stream (`mx/snd.h`, mxsnd on the IOP) by `ps2/snd_ps2.c` as far as the mixer has painted |
 | Math | float literals (`-cl-single-precision-constant`) and float math.h (`ps2/ps2_math.h`): the FPU has no doubles |
 
 Not done: CD audio (id's null driver), network play (loopback only).
