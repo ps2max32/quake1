@@ -142,15 +142,6 @@ void Sys_LowFPPrecision(void) {}
 
 /* ---- main --------------------------------------------------------------------- */
 
-/* maxsdk's virtual memory (<mx/vm.h>): malloc (the hunk) in up to 128 MiB,
-   paged to a swap file next to the game's data; what the GS reads by DMA
-   (libgl: arenas, textures) is pinned memory, frames taken as needed.
-   MX_MEMORY=phys: no VM, everything in the 32 MiB */
-#if PS2_VM
-const struct mx_vm_config mx_vm_config = {
-	.swap = "quake1.swp",
-};
-#endif
 
 int main(int argc, char **argv) {
 	static quakeparms_t parms;

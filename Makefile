@@ -16,9 +16,7 @@ MXGL     ?= $(PS2MAX)/libs/libgl
 OUT      ?= $(PS2MAX)/build/apps/quake1
 all: $(OUT)/quake1.elf
 include $(MXGL)/mk/mxgl.mk
-# the program in VM (ld/maxsdk-vm.ld), started by mxlink; MX_MEMORY=phys:
-# all of it in physical memory (32 MiB, no VM in PCSX2's recompiler)
-MX_MEMORY ?= vm
+# an MXOS program: in VM (ld/maxsdk-vm.ld), started by the kernel (apps/mxos)
 include $(MAXSDK)/mk/maxsdk.mk
 # in VM: Quake in VM, libgl in core
 MX_FAST_OBJS = $(MXGL_OBJS)
@@ -59,8 +57,8 @@ $(OUT)/ps2/%.o: $(P)/%.c
 # ARGS: more of the command line. In $(OUT)/ps2/runcfg.h, rewritten only
 # when they change.
 RUNCFG := $(OUT)/ps2/runcfg.h
-$(shell mkdir -p $(OUT)/ps2; printf '#define PS2_FRAMES %s\n#define PS2_ARGS "%s"\n#define PS2_PROF %s\n#define PS2_VM %s\n#define PS2_FIXED_FPS %s\n' \
-  '$(or $(FRAMES),0)' '$(ARGS)' '$(or $(PROF),0)' '$(if $(filter vm,$(MX_MEMORY)),1,0)' '$(or $(FIXEDFPS),0)' > $(RUNCFG).new; \
+$(shell mkdir -p $(OUT)/ps2; printf '#define PS2_FRAMES %s\n#define PS2_ARGS "%s"\n#define PS2_PROF %s\n#define PS2_FIXED_FPS %s\n' \
+  '$(or $(FRAMES),0)' '$(ARGS)' '$(or $(PROF),0)' '$(or $(FIXEDFPS),0)' > $(RUNCFG).new; \
   cmp -s $(RUNCFG).new $(RUNCFG) || mv $(RUNCFG).new $(RUNCFG); rm -f $(RUNCFG).new)
 
 $(OUT)/quake1.elf: $(OBJS) $(MXGL_OBJS) $(HLSL_OBJS) $(MX_LIB) $(MX_CRT0) $(MX_LD) $(LIBC_LIBS)
@@ -83,12 +81,8 @@ run: $(OUT)/quake1.elf
 	@mkdir -p $(RUNDIR)/id1
 	@for f in pak0 pak1; do [ -f $(RUNDIR)/id1/$$f.pak ] || \
 	  cp -v "$(Q1DATA)/$$(echo $$f | tr a-z A-Z).PAK" $(RUNDIR)/id1/$$f.pak; done
-ifeq ($(MX_MEMORY),vm)
 	cp $(OUT)/quake1.elf $(RUNDIR)/quake1.elf
 	MXLOAD="host:quake1.elf" PCSX2_EE=interp $(PCSX2_RUN) $(MX_LOADER) $(or $(TIMEOUT),1800)
-else
-	$(PCSX2_RUN) $(OUT)/quake1.elf $(or $(TIMEOUT),600)
-endif
 
 clean:
 	rm -rf $(OUT)

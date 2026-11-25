@@ -30,7 +30,7 @@ same view; what differs is libgl's.
 | Video | `ps2/vid_ps2.c`: the TV's mode, NTSC 640 x 448 or PAL 640 x 512 (the console's), or 1080i, with or without beam racing, 16 or 24-bit colour (below); `gl_max_size 256`, trilinear, the textures' top levels left out only while GS memory overflows or the swap file is read (`gl_ps2texquality -1`, libgl's `MXGL_TEX_AUTO`; 0, 1, 2: that many levels always; `gl_ps2texlimits 120,80,30`); dynamic lights in the lightmaps (`gl_flashblend 0`); the status bar every frame |
 | Files | stdio on the IOP file server (`host:`), `ps2/ps2_file.c`; `-basedir host:` |
 | Input | pad 0: d-pad arrows, left stick moves, right stick turns, R1 attack (CTRL), X enter/jump, START menu, L3 + R3 (both sticks pressed) the counters on/off, SELECT scores; O, square, triangle, R2, L1, L2 are AUX1..6 (bind them) |
-| Memory | maxsdk's virtual memory (`mx_vm_config` in `ps2/sys_ps2.c`): `malloc` in up to 128 MiB, paged to `host:quake1.swp`; the hunk 16 MiB (`-mem <MiB>`); built into VM (`MX_MEMORY=vm`, the default: started by `mxload.elf`, as `make run` does), only maxsdk, libc and libgl in physical memory; libgl's pinned memory (what the GS reads by DMA) taken from the frames as needed, the textures' larger levels pageable; stack 1 MiB. In PCSX2 only on the EE interpreter (`PCSX2_EE=interp`: the recompiler raises no TLB misses); `MX_MEMORY=phys` builds it to run without VM, in 32 MiB |
+| Memory | maxsdk's virtual memory: `malloc` in up to 128 MiB, paged to the system's swap file; the hunk 16 MiB (`-mem <MiB>`); built into VM (an MXOS program, started by the kernel), only maxsdk, libc and libgl in physical memory; libgl's pinned memory (what the GS reads by DMA) taken from the frames as needed, the textures' larger levels pageable; stack 1 MiB. In PCSX2 only on the EE interpreter (`PCSX2_EE=interp`: the recompiler raises no TLB misses) |
 | Sound | id's mixer (`snd_dma.c`, `snd_mix.c`) at 22050 Hz 16-bit stereo into a ring, sent to maxsdk's PCM stream (`mx/snd.h`, mxsnd on the IOP) by `ps2/snd_ps2.c` as far as the mixer has painted |
 | Math | float literals (`-cl-single-precision-constant`) and float math.h (`ps2/ps2_math.h`): the FPU has no doubles |
 
@@ -51,8 +51,7 @@ Options, Video Options sets three things, each at once:
   (3.3 MiB for textures); 16-bit (dithered) otherwise.
 
 Beam racing takes 2 MiB more of pinned memory while it is on. When the world's buffer object
-does not fit (a build without virtual memory, `MX_MEMORY=phys`, in PCSX2's 32 MiB), the
-world is drawn from its polygons' own vertices.
+does not fit, the world is drawn from its polygons' own vertices.
 
 On the PS2 (2026-10-31, the 1080i-only build before the switch): the demo loop at 59 to 61
 fps, the `start` map at 60; no pass late. World polygons are drawn with `mxgl_DrawPolygon`
